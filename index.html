@@ -9,7 +9,32 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
+    <!-- Login Screen -->
+    <div id="login-container" class="login-container">
+        <div class="login-box glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-atom"></i>
+                <h1>Graphene<span>Log</span></h1>
+            </div>
+            <h2>Đăng nhập Hệ thống</h2>
+            <p>Sổ tay điện tử Graphene CVD Lab</p>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required placeholder="Nhập email do Admin cấp">
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Mật khẩu</label>
+                    <input type="password" id="login-password" required placeholder="Nhập mật khẩu">
+                </div>
+                <p id="login-error" style="color: #ef4444; font-size: 0.85rem; display: none; margin-bottom: 10px;"></p>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Đăng nhập</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app-container" class="app-container" style="display: none;">
         <!-- Sidebar -->
         <aside class="sidebar glass-panel">
             <div class="logo">
@@ -27,8 +52,10 @@
                     <i class="fa-solid fa-code-compare"></i> So Sánh
                 </a>
             </nav>
-            <div class="sidebar-footer">
-                <p>CVD Lab Notebook v1.0</p>
+            <div class="sidebar-footer" style="margin-top: auto; padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <button class="btn btn-outline" onclick="logout()" style="width: 100%; border-color: rgba(239, 68, 68, 0.5); color: #f87171;">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+                </button>
             </div>
         </aside>
 
@@ -371,6 +398,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script src="script.js"></script>
 </body>

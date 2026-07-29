@@ -470,3 +470,13 @@ body {
 .selected-row { background: rgba(59, 130, 246, 0.2) !important; }
 
 .compare-list { max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.1); border-radius: 8px; padding: 10px; } .compare-item { display: flex; align-items: center; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; } .compare-item:hover { background: rgba(255,255,255,0.05); } .compare-item input { margin-right: 10px; transform: scale(1.2); cursor: pointer; }
+
+/* Login UI */
+.login-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 10% 20%, rgb(14, 26, 64) 0%, rgb(8, 15, 37) 90%); z-index: 9999; }
+.login-box { width: 100%; max-width: 400px; padding: 40px; text-align: center; }
+.login-box .logo { justify-content: center; margin-bottom: 20px; }
+.login-box .logo i { font-size: 2.5rem; }
+.login-box h2 { font-size: 1.5rem; margin-bottom: 5px; color: #fff; }
+.login-box p { color: #94a3b8; margin-bottom: 30px; font-size: 0.95rem; }
+.login-box .input-group { text-align: left; }
+.login-box .btn { margin-top: 15px; font-size: 1.1rem; padding: 12px; }

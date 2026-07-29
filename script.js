@@ -11,18 +11,60 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
 // State
 let logsData = [];
 let editingLogId = null;
+let unsubscribeSnapshot = null;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     // Set default date to today
     document.getElementById('date').valueAsDate = new Date();
     
+    // Auth State Observer
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // Logged in
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            initRealtimeUpdates();
+        } else {
+            // Logged out
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'flex';
+            if (unsubscribeSnapshot) {
+                unsubscribeSnapshot();
+                unsubscribeSnapshot = null;
+            }
+            logsData = [];
+            document.getElementById('login-form').reset();
+            document.getElementById('login-error').style.display = 'none';
+        }
+    });
+
+    // Login Form Submit
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorEl = document.getElementById('login-error');
+        
+        auth.signInWithEmailAndPassword(email, password)
+            .catch(error => {
+                errorEl.textContent = "Email hoặc mật khẩu không đúng!";
+                errorEl.style.display = 'block';
+            });
+    });
+    
+    // Setup form submission
+    document.getElementById('cvd-form').addEventListener('submit', handleFormSubmit);
+});
+
+function initRealtimeUpdates() {
     // Listen to Firestore real-time updates
-    db.collection("logs").orderBy("createdAt", "asc").onSnapshot((querySnapshot) => {
+    unsubscribeSnapshot = db.collection("logs").orderBy("createdAt", "asc").onSnapshot((querySnapshot) => {
         logsData = [];
         querySnapshot.forEach((doc) => {
             logsData.push(doc.data());
@@ -46,10 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Error listening to logs: ", error);
         alert("Có lỗi xảy ra khi đồng bộ dữ liệu từ server!");
     });
-    
-    // Setup form submission
-    document.getElementById('cvd-form').addEventListener('submit', handleFormSubmit);
-});
+}
+
+function logout() {
+    auth.signOut();
+}
 
 // UI Navigation
 function switchTab(tabId, isNew = false) {

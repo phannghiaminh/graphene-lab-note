@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVD Graphene Lab Notebook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass-panel">
+            <div class="logo">
+                <div class="logo-icon"><i class="fa-solid fa-atom"></i></div>
+                <h2>Graphene<span class="highlight">Log</span></h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item" id="nav-new-log" onclick="switchTab('new-log', true)">
+                    <i class="fa-solid fa-plus-circle"></i> Mẻ Thực Nghiệm Mới
+                </a>
+                <a href="#" class="nav-item" id="nav-compare" onclick="switchTab('compare')">
+                    <i class="fa-solid fa-code-compare"></i> So Sánh
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>CVD Lab Notebook v1.0</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-title">
+                    <h1 id="page-title">Dashboard</h1>
+                    <p id="page-subtitle">Tổng quan các mẻ thực nghiệm CVD</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="exportData()"><i class="fa-solid fa-file-export"></i> Xuất Excel</button>
+                    <button class="btn btn-primary" onclick="switchTab('new-log', true)"><i class="fa-solid fa-plus"></i> Tạo Mới</button>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view-section active">
+                <div class="stats-container">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon"><i class="fa-solid fa-flask"></i></div>
+                        <div class="stat-info">
+                            <h3>Tổng Số Mẻ</h3>
+                            <p id="total-logs">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon"><i class="fa-solid fa-fire"></i></div>
+                        <div class="stat-info">
+                            <h3>Nhiệt Độ Max (Gần Đây)</h3>
+                            <p id="recent-temp">-- °C</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="logs-table-container glass-panel mt-4">
+                    <div class="table-header">
+                        <h2>Lịch Sử Thực Nghiệm</h2>
+                    </div>
+                    <table class="logs-table">
+                        <thead>
+                            <tr>
+                                <th>Mã Mẫu</th>
+                                <th>Ngày Tháng</th>
+                                <th>Người Làm</th>
+                                <th>Nhiệt Độ Max (°C)</th>
+                                <th>Đế</th>
+                                <th>Khí Ủ (Ar:H2)</th>
+                                <th>Khí Nuôi (Ar:H2:CH4)</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                    <div id="empty-state" class="empty-state">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <p>Chưa có dữ liệu thực nghiệm nào.</p>
+                        <button class="btn btn-primary" onclick="switchTab('new-log', true)">Tạo mẻ đầu tiên</button>
+                    </div>
+                </div>
+
+                <div id="dashboard-chart-container" class="glass-panel mt-4" style="display: none;">
+                    <div class="table-header">
+                        <h2>Biểu Đồ Thông Số: <span id="dashboard-chart-title" style="color: #3b82f6;"></span></h2>
+                    </div>
+                    
+                    <h3 style="margin-top: 15px; font-size: 1.1rem; color: #a5b4fc;"><i class="fa-solid fa-temperature-half"></i> 1. Nhiệt độ</h3>
+                    <div style="height: 300px; width: 100%; position: relative; margin-top: 10px;">
+                        <canvas id="dashboardTemperatureChart"></canvas>
+                    </div>
+
+                    <h3 style="margin-top: 25px; font-size: 1.1rem; color: #a5b4fc;"><i class="fa-solid fa-wind"></i> 2. Lưu lượng khí (sccm)</h3>
+                    <div style="height: 250px; width: 100%; position: relative; margin-top: 10px;">
+                        <canvas id="dashboardGasChart"></canvas>
+                    </div>
+
+                    <h3 style="margin-top: 25px; font-size: 1.1rem; color: #a5b4fc;"><i class="fa-solid fa-gauge"></i> 3. Áp suất (bar)</h3>
+                    <div style="height: 250px; width: 100%; position: relative; margin-top: 10px;">
+                        <canvas id="dashboardPressureChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Compare View -->
+            <section id="compare-view" class="view-section" style="display: none;">
+                <div class="glass-panel">
+                    <div class="table-header">
+                        <h2>So Sánh Các Mẻ Thực Nghiệm</h2>
+                    </div>
+                    
+                    <div class="form-grid" style="margin-top: 15px; grid-template-columns: 1fr 2fr;">
+                        <div class="input-group">
+                            <label>1. Chọn thông số so sánh</label>
+                            <select id="compare-parameter" onchange="updateCompareChart()" style="margin-bottom: 20px;">
+                                <option value="temp">Nhiệt độ (°C)</option>
+                                <option value="flow_ar">Lưu lượng Ar (sccm)</option>
+                                <option value="flow_h2">Lưu lượng H2 (sccm)</option>
+                                <option value="flow_ch4">Lưu lượng CH4 (sccm)</option>
+                                <option value="pressure_ar">Áp suất Ar (bar)</option>
+                                <option value="pressure_h2">Áp suất H2 (bar)</option>
+                                <option value="pressure_ch4">Áp suất CH4 (bar)</option>
+                            </select>
+
+                            <label>2. Chọn các mẻ (Tối đa 10)</label>
+                            <div id="compare-log-list" class="compare-list">
+                                <!-- Checkboxes will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <div class="input-group" style="position: relative; height: 500px;">
+                            <canvas id="compareChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- New Log View -->
+            <section id="new-log-view" class="view-section" style="display: none;">
+                <form id="cvd-form" class="log-form glass-panel">
+                    <!-- 1. General Info -->
+                    <div class="form-section">
+                        <h3 class="section-title"><i class="fa-solid fa-circle-info"></i> Thông Tin Chung</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="sample-id">Mã Mẫu</label>
+                                <input type="text" id="sample-id" name="sampleId" placeholder="VD: GR-2026-001" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="date">Ngày Tháng</label>
+                                <input type="date" id="date" name="date" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="operator">Người Thực Hiện</label>
+                                <input type="text" id="operator" name="operator" placeholder="Tên người làm" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="substrate">Đế (Substrate)</label>
+                                <select id="substrate" name="substrate">
+                                    <option value="Cu">Cu foil</option>
+                                    <option value="Ni">Ni foil</option>
+                                    <option value="SiO2/Si">SiO2/Si</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 1.2 Purging (Đẩy khí làm sạch) -->
+                    <div class="form-section mt-4">
+                        <h3 class="section-title"><i class="fa-solid fa-wind"></i> Giai Đoạn Làm Sạch Lò (Purging)</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="purge-time">Thời gian (phút)</label>
+                                <input type="number" id="purge-time" name="purgeTime" placeholder="15" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="purge-ar">Lưu lượng Ar (sccm)</label>
+                                <input type="number" id="purge-ar" name="purgeAr" placeholder="1000">
+                                <label for="purge-ar-pressure" style="margin-top: 4px;">Áp suất Ar (bar)</label>
+                                <input type="number" step="0.001" id="purge-ar-pressure" name="purgeArPressure" placeholder="Ví dụ: 0.5">
+                            </div>
+                            <div class="input-group">
+                                <label for="purge-h2">Lưu lượng H2 (sccm)</label>
+                                <input type="number" id="purge-h2" name="purgeH2" placeholder="0">
+                                <label for="purge-h2-pressure" style="margin-top: 4px;">Áp suất H2 (bar)</label>
+                                <input type="number" step="0.001" id="purge-h2-pressure" name="purgeH2Pressure" placeholder="Ví dụ: 0.5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 1.5 Heating (Ramp-up) -->
+                    <div class="form-section mt-4">
+                        <h3 class="section-title"><i class="fa-solid fa-fire-flame-curved"></i> Giai Đoạn Nâng Nhiệt (Heating)</h3>
+                        <div class="form-grid">
+                            <div class="heating-steps-container" style="grid-column: 1 / -1; margin-bottom: 16px; background: rgba(0,0,0,0.15); padding: 16px; border-radius: 8px;">
+                                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin: 0;">Các bước nâng nhiệt (Nhiệt độ đích & Thời gian)</h4>
+                                    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" onclick="addHeatingStep()"><i class="fa-solid fa-plus"></i> Thêm bước</button>
+                                </div>
+                                <div id="heating-steps-wrapper" style="display: flex; flex-direction: column; gap: 10px;">
+                                    <div class="heating-step input-group" id="heating-step-1" style="flex-direction: row; align-items: center;">
+                                        <span style="min-width: 60px; font-weight: 600; color: #94a3b8;">Bước 1</span>
+                                        <input type="number" name="heatingTemp_1" placeholder="Nhiệt độ (°C)" style="flex:1;" required>
+                                        <input type="number" name="heatingTime_1" placeholder="Thời gian (phút)" style="flex:1;" required>
+                                    </div>
+                                    <div class="heating-step input-group" id="heating-step-2" style="flex-direction: row; align-items: center; display: none;">
+                                        <span style="min-width: 60px; font-weight: 600; color: #94a3b8;">Bước 2</span>
+                                        <input type="number" name="heatingTemp_2" placeholder="Nhiệt độ (°C)" style="flex:1;">
+                                        <input type="number" name="heatingTime_2" placeholder="Thời gian (phút)" style="flex:1;">
+                                    </div>
+                                    <div class="heating-step input-group" id="heating-step-3" style="flex-direction: row; align-items: center; display: none;">
+                                        <span style="min-width: 60px; font-weight: 600; color: #94a3b8;">Bước 3</span>
+                                        <input type="number" name="heatingTemp_3" placeholder="Nhiệt độ (°C)" style="flex:1;">
+                                        <input type="number" name="heatingTime_3" placeholder="Thời gian (phút)" style="flex:1;">
+                                    </div>
+                                    <div class="heating-step input-group" id="heating-step-4" style="flex-direction: row; align-items: center; display: none;">
+                                        <span style="min-width: 60px; font-weight: 600; color: #94a3b8;">Bước 4</span>
+                                        <input type="number" name="heatingTemp_4" placeholder="Nhiệt độ (°C)" style="flex:1;">
+                                        <input type="number" name="heatingTime_4" placeholder="Thời gian (phút)" style="flex:1;">
+                                    </div>
+                                    <div class="heating-step input-group" id="heating-step-5" style="flex-direction: row; align-items: center; display: none;">
+                                        <span style="min-width: 60px; font-weight: 600; color: #94a3b8;">Bước 5</span>
+                                        <input type="number" name="heatingTemp_5" placeholder="Nhiệt độ (°C)" style="flex:1;">
+                                        <input type="number" name="heatingTime_5" placeholder="Thời gian (phút)" style="flex:1;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="heating-h2">Lưu lượng H2 (sccm)</label>
+                                <input type="number" id="heating-h2" name="heatingH2" placeholder="10">
+                                <label for="heating-h2-pressure" style="margin-top: 4px;">Áp suất H2 (bar)</label>
+                                <input type="number" step="0.001" id="heating-h2-pressure" name="heatingH2Pressure" placeholder="Ví dụ: 1.0">
+                            </div>
+                            <div class="input-group">
+                                <label for="heating-ar">Lưu lượng Ar (sccm)</label>
+                                <input type="number" id="heating-ar" name="heatingAr" placeholder="500">
+                                <label for="heating-ar-pressure" style="margin-top: 4px;">Áp suất Ar (bar)</label>
+                                <input type="number" step="0.001" id="heating-ar-pressure" name="heatingArPressure" placeholder="Ví dụ: 1.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Pre-treatment (Annealing) -->
+                    <div class="form-section mt-4">
+                        <h3 class="section-title"><i class="fa-solid fa-temperature-arrow-up"></i> Giai Đoạn Ủ (Pre-treatment / Annealing)</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="anneal-temp">Nhiệt độ (°C)</label>
+                                <input type="number" id="anneal-temp" name="annealTemp" placeholder="1000" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="anneal-time">Thời gian (phút)</label>
+                                <input type="number" id="anneal-time" name="annealTime" placeholder="30" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="anneal-h2">Lưu lượng H2 (sccm)</label>
+                                <input type="number" id="anneal-h2" name="annealH2" placeholder="10" required>
+                                <label for="anneal-h2-pressure" style="margin-top: 4px;">Áp suất H2 (bar)</label>
+                                <input type="number" step="0.001" id="anneal-h2-pressure" name="annealH2Pressure" placeholder="Ví dụ: 1.0">
+                            </div>
+                            <div class="input-group">
+                                <label for="anneal-ar">Lưu lượng Ar (sccm)</label>
+                                <input type="number" id="anneal-ar" name="annealAr" placeholder="500">
+                                <label for="anneal-ar-pressure" style="margin-top: 4px;">Áp suất Ar (bar)</label>
+                                <input type="number" step="0.001" id="anneal-ar-pressure" name="annealArPressure" placeholder="Ví dụ: 1.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Growth -->
+                    <div class="form-section mt-4">
+                        <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(6, 182, 212, 0.2); padding-bottom: 8px; margin-bottom: 20px;">
+                            <span style="font-size: 1.1rem; font-weight: 600; color: var(--accent-color);"><i class="fa-solid fa-leaf"></i> Giai Đoạn Nuôi Cấy (Growth)</span>
+                            <label style="font-size: 0.9rem; font-weight: normal; color: var(--text-primary); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="enable-growth" name="hasGrowth" checked onchange="toggleGrowthSection()" style="width: auto; margin: 0; box-shadow: none;"> Bao gồm giai đoạn này
+                            </label>
+                        </div>
+                        <div class="form-grid" id="growth-inputs">
+                            <div class="input-group">
+                                <label for="growth-temp">Nhiệt độ (°C)</label>
+                                <input type="number" id="growth-temp" name="growthTemp" placeholder="1000" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="growth-time">Thời gian (phút)</label>
+                                <input type="number" id="growth-time" name="growthTime" placeholder="15" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="growth-ch4">Lưu lượng CH4 (sccm)</label>
+                                <input type="number" id="growth-ch4" name="growthCh4" placeholder="5" required>
+                                <label for="growth-ch4-pressure" style="margin-top: 4px;">Áp suất CH4 (bar)</label>
+                                <input type="number" step="0.001" id="growth-ch4-pressure" name="growthCh4Pressure" placeholder="Ví dụ: 0.5">
+                            </div>
+                            <div class="input-group">
+                                <label for="growth-h2">Lưu lượng H2 (sccm)</label>
+                                <input type="number" id="growth-h2" name="growthH2" placeholder="10" required>
+                                <label for="growth-h2-pressure" style="margin-top: 4px;">Áp suất H2 (bar)</label>
+                                <input type="number" step="0.001" id="growth-h2-pressure" name="growthH2Pressure" placeholder="Ví dụ: 0.5">
+                            </div>
+                            <div class="input-group">
+                                <label for="growth-ar">Lưu lượng Ar (sccm)</label>
+                                <input type="number" id="growth-ar" name="growthAr" placeholder="500">
+                                <label for="growth-ar-pressure" style="margin-top: 4px;">Áp suất Ar (bar)</label>
+                                <input type="number" step="0.001" id="growth-ar-pressure" name="growthArPressure" placeholder="Ví dụ: 0.5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Cooling -->
+                    <div class="form-section mt-4">
+                        <h3 class="section-title"><i class="fa-solid fa-temperature-arrow-down"></i> Giai Đoạn Làm Nguội (Cooling)</h3>
+                        <div class="form-grid">
+                            <div class="input-group" style="grid-column: 1 / -1;">
+                                <label for="cooling-rate">Tốc độ làm nguội (°C/phút)</label>
+                                <input type="number" id="cooling-rate" name="coolingRate" placeholder="Ví dụ: 50" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="cooling-h2">Lưu lượng H2 (sccm)</label>
+                                <input type="number" id="cooling-h2" name="coolingH2" placeholder="Ví dụ: 10">
+                                <label for="cooling-h2-pressure" style="margin-top: 4px;">Áp suất H2 (bar)</label>
+                                <input type="number" step="0.001" id="cooling-h2-pressure" name="coolingH2Pressure" placeholder="Ví dụ: 2">
+                            </div>
+                            <div class="input-group">
+                                <label for="cooling-ar">Lưu lượng Ar (sccm)</label>
+                                <input type="number" id="cooling-ar" name="coolingAr" placeholder="Ví dụ: 100">
+                                <label for="cooling-ar-pressure" style="margin-top: 4px;">Áp suất Ar (bar)</label>
+                                <input type="number" step="0.001" id="cooling-ar-pressure" name="coolingArPressure" placeholder="Ví dụ: 2">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-section mt-4">
+                        <h3 class="section-title"><i class="fa-solid fa-pen-to-square"></i> Ghi Chú Thêm</h3>
+                        <div class="input-group" style="grid-column: 1 / -1;">
+                            <textarea id="notes" name="notes" rows="4" placeholder="Ví dụ: Bề mặt đồng có hiện tượng oxy hóa nhẹ trước khi ủ..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions mt-4">
+                        <button type="button" class="btn btn-outline" onclick="switchTab('dashboard')">Hủy</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Lưu Nhật Ký</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Viewing Details -->
+    <div id="detail-modal" class="modal">
+        <div class="modal-content glass-panel">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>Chi Tiết Mẻ Thực Nghiệm</h2>
+            <div id="modal-body" class="mt-4">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

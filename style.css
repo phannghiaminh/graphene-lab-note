@@ -52,12 +52,19 @@ body {
 
 /* Sidebar */
 .sidebar {
-    width: 260px;
+    width: 76px;
     margin: 16px;
-    padding: 24px;
+    padding: 24px 16px;
     display: flex;
     flex-direction: column;
     z-index: 10;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-x: hidden;
+    white-space: nowrap;
+}
+
+.sidebar:hover {
+    width: 260px;
 }
 
 .logo {
@@ -65,6 +72,7 @@ body {
     align-items: center;
     gap: 12px;
     margin-bottom: 40px;
+    padding-left: 2px;
 }
 
 .logo-icon {
@@ -82,6 +90,12 @@ body {
 .logo h2 {
     font-size: 1.4rem;
     font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar:hover .logo h2 {
+    opacity: 1;
 }
 
 .highlight {
@@ -99,12 +113,13 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 12px 14px;
     text-decoration: none;
     color: var(--text-secondary);
     border-radius: 10px;
     font-weight: 500;
     transition: var(--transition);
+    overflow: hidden;
 }
 
 .nav-item:hover {
@@ -122,6 +137,12 @@ body {
     text-align: center;
     font-size: 0.8rem;
     color: var(--text-secondary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar:hover .sidebar-footer {
+    opacity: 1;
 }
 
 /* Main Content */
